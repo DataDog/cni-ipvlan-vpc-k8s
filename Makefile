@@ -34,9 +34,9 @@ build:
 	go build -i -o $(NAME)-ipam ./plugin/ipam/main.go
 	go build -i -o $(NAME)-ipvlan ./plugin/ipvlan/ipvlan.go
 	go build -i -o $(NAME)-unnumbered-ptp ./plugin/unnumbered-ptp/unnumbered-ptp.go
+	go build -i -o $(NAME)-policy-routing-ptp ./plugin/policy-routing-ptp/policy-routing-ptp.go
 	go build -i -ldflags "-X main.version=$(VERSION)" -o $(NAME)-tool ./cmd/cni-ipvlan-vpc-k8s-tool/cni-ipvlan-vpc-k8s-tool.go
-
-	tar cvzf cni-ipvlan-vpc-k8s-${GOARCH}-$(VERSION).tar.gz $(NAME)-ipam $(NAME)-ipvlan $(NAME)-unnumbered-ptp $(NAME)-tool
+	tar cvzf cni-ipvlan-vpc-k8s-${GOARCH}-$(VERSION).tar.gz $(NAME)-ipam $(NAME)-ipvlan $(NAME)-unnumbered-ptp $(NAME)-policy-routing-ptp $(NAME)-tool
 
 .PHONY: test-docker
 test-docker:
