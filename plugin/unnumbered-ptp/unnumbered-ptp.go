@@ -302,7 +302,7 @@ func setupNodePortRule(ifName string, nodePorts string, nodePortMark int) error 
 	return nil
 }
 
-func setupContainerVeth(netns ns.NetNS, ifName string, mtu int, hostAddrs []netlink.Addr, masq, containerIPV4, containerIPV6 bool, k8sIfName string, pr *current.Result) (*current.Interface, *current.Interface, error) {
+func setupContainerVeth(netns ns.NetNS, ifName string, mtu int, hostAddrs []netlink.Addr, containerIPV4, containerIPV6 bool, k8sIfName string, pr *current.Result) (*current.Interface, *current.Interface, error) {
 	hostInterface := &current.Interface{}
 	containerInterface := &current.Interface{}
 
@@ -324,19 +324,6 @@ func setupContainerVeth(netns ns.NetNS, ifName string, mtu int, hostAddrs []netl
 		contVeth, err := net.InterfaceByName(ifName)
 		if err != nil {
 			return fmt.Errorf("failed to look up %q: %v", ifName, err)
-		}
-
-		if masq {
-			// enable forwarding and SNATing for traffic rerouted from kube-proxy
-			err := enableForwarding(containerIPV4, containerIPV6)
-			if err != nil {
-				return err
-			}
-
-			err = setupSNAT(k8sIfName, "kube-proxy SNAT")
-			if err != nil {
-				return fmt.Errorf("failed to enable SNAT on %q: %v", k8sIfName, err)
-			}
 		}
 
 		// add host routes for each dst hostInterface ip on dev contVeth
@@ -500,7 +487,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 
 	hostInterface, _, err := setupContainerVeth(netns, conf.ContainerInterface, conf.MTU,
-		hostAddrs, conf.IPMasq, containerIPV4, containerIPV6, args.IfName, conf.PrevResult)
+		hostAddrs, containerIPV4, containerIPV6, args.IfName, conf.PrevResult)
 	if err != nil {
 		return err
 	}
