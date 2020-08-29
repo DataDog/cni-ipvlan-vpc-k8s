@@ -26,6 +26,7 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/containernetworking/cni/pkg/skel"
@@ -177,7 +178,11 @@ func findFreeTable(start int) (int, error) {
 	for _, family := range []int{netlink.FAMILY_V4, netlink.FAMILY_V6} {
 		rules, err := netlink.RuleList(family)
 		if err != nil {
-			return -1, err
+			// if ipv6 is disabled the call will error for netlink.FAMILY_V6
+			if err != syscall.EAFNOSUPPORT {
+				return -1, fmt.Errorf("unable to list rules for families %v: %v", family, err)
+			}
+			continue
 		}
 		for _, rule := range rules {
 			allocatedTableIDs[rule.Table] = true
@@ -206,7 +211,7 @@ func addPolicyRules(veth *net.Interface, ipc *current.IPConfig, routes []*types.
 		// jitter looking for an initial free table slot
 		table, err = findFreeTable(tableStart + rand.Intn(1000))
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to find a free table: %v", err)
 		}
 
 		// add routes to the policy routing table
